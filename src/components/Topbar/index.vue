@@ -5,6 +5,7 @@ const router = useRouter();
 
 const logout = () => {
   localStorage.removeItem("token");
+  router.push("/login");
 };
 </script>
 
@@ -78,7 +79,6 @@ const logout = () => {
       v-on:click="
         () => {
           logout();
-          router.push('/login');
         }
       "
     >

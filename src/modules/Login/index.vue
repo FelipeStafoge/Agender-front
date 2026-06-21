@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useLoginRequest, useRegisterRequest } from "@/requests/register";
+import { useLoginRequest } from "@/requests/login";
+import { useRegisterRequest } from "@/requests/register";
 import { useAuth } from "@/utils/Authentication/auth";
 import { computed, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
