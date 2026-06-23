@@ -1,12 +1,17 @@
 import http from "@/services/http";
 
 export const useCreateEventRequest = async ({
-  DateTime,
+  form,
 }: {
-  DateTime: string;
+  form: {
+    name: string;
+    date: string;
+    creator_id: string;
+    users_ids: string[];
+  };
 }) => {
   const { data } = await http.post("/auth/createEvent", {
-    DateTime,
+    form,
   });
 
   return data;

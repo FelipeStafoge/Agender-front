@@ -17,6 +17,7 @@ const loginRequest = async ({ form }: LoginParams) => {
   const { setUser } = useAuth();
   setUser({
     userCode: data.data.userCode,
+    account_id: data.data.account_id,
     userEmail: data.data.email,
     userName: data.data.userName,
   });
