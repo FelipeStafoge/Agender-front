@@ -31,6 +31,10 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const token = localStorage.getItem("token");
+  const userAuthenticated = localStorage.getItem("user");
+  if (!userAuthenticated) {
+    //refaz chamada pra puxar infos do usuario
+  }
 
   if (to.meta.requiresAuth && !token) {
     return {

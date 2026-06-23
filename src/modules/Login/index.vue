@@ -6,14 +6,15 @@ import { computed, reactive } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 const RegisterinitialForm = {
+  name: "",
   email: "",
   password: "",
   confirmPassword: "",
 };
 
 const auth = useAuth();
-const handleLogin1 = useLoginRequest;
-const registerUser = useRegisterRequest;
+const loginMutation = useLoginRequest();
+const registerMutation = useRegisterRequest();
 const route = useRoute();
 const router = useRouter();
 const Registerform = reactive({ ...RegisterinitialForm });
@@ -31,28 +32,30 @@ const isValidEmail = (email: string) => {
 };
 
 const handleLogin = async (form: { email: string; password: string }) => {
-  if (isValidEmail(form.email)) {
-    try {
-      await handleLogin1({ form });
-      const redirectPath = (route.query.redirect as string) || "/";
-      router.push(redirectPath);
-    } catch (error) {
-      console.log(error);
-    }
+  if (!isValidEmail(form.email)) return;
+
+  try {
+    await loginMutation.mutateAsync({ form });
+
+    const redirectPath = (route.query.redirect as string) || "/";
+    router.push(redirectPath);
+  } catch (error) {
+    console.log(error);
   }
 };
 
-const handleRegister = (form: {
+const handleRegister = async (form: {
+  name: string;
   email: string;
   password: string;
-  confirmPassword: string;
 }) => {
-  if (
-    Registerform.password === Registerform.confirmPassword &&
-    isValidEmail(form.email)
-  ) {
-    registerUser({ form });
-    Object.assign(form, RegisterinitialForm);
+  try {
+    await registerMutation.mutateAsync({ form });
+
+    const redirectPath = (route.query.redirect as string) || "/";
+    router.push(redirectPath);
+  } catch (error) {
+    console.error(error);
   }
 };
 </script>
@@ -76,6 +79,11 @@ const handleRegister = (form: {
       "
     >
       <h1>Register</h1>
+      <input
+        v-model="Registerform.name"
+        placeholder="Nome"
+        style="margin-bottom: 5px"
+      />
       <input
         v-model="Registerform.email"
         placeholder="Email"
