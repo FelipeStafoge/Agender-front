@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { useAuth } from "@/utils/Authentication/auth";
 
 const router = useRouter();
+const { getUser } = useAuth();
 
 const logout = () => {
   localStorage.removeItem("token");
@@ -84,5 +86,6 @@ const logout = () => {
     >
       Log Out
     </div>
+    <div>{{ getUser?.userName + "#" + getUser?.userCode }}</div>
   </div>
 </template>

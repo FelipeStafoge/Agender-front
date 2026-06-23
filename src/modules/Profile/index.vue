@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { useRegisterRequest } from "@/requests/register";
-import { useAuth } from "@/utils/Authentication/auth";
-import { computed, reactive, watchEffect } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { computed } from "vue";
 import Topbar from "@/components/Topbar/index.vue";
 import { useGetListEvents } from "@/requests/Events/ListEvents/listEvent";
 
