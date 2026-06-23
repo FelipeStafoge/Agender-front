@@ -4,6 +4,7 @@ import { computed, ref } from "vue";
 export const useAuth = defineStore("auth", () => {
   const token = ref(localStorage.getItem("token"));
   const user = ref<{
+    account_id: string;
     userName: string;
     userCode: string;
     userEmail: string;
@@ -16,6 +17,7 @@ export const useAuth = defineStore("auth", () => {
   };
 
   const setUser = (userValue: {
+    account_id: string;
     userName: string;
     userCode: string;
     userEmail: string;

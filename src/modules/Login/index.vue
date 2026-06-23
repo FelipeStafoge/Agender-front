@@ -12,7 +12,6 @@ const RegisterinitialForm = {
   confirmPassword: "",
 };
 
-const auth = useAuth();
 const loginMutation = useLoginRequest();
 const registerMutation = useRegisterRequest();
 const route = useRoute();
