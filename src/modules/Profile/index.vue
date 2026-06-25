@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import Topbar from "@/components/Topbar/index.vue";
 import { useGetListEvents } from "@/requests/Events/ListEvents/listEvent";
 
 const getUserEvents = useGetListEvents();
@@ -11,7 +10,6 @@ const error = computed(() => getUserEvents.error.value);
 </script>
 
 <template>
-  <Topbar />
   <div v-if="isPending">Carregando...</div>
 
   <div v-else-if="error">Erro ao carregar</div>
