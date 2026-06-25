@@ -5,6 +5,7 @@ type CreateEventParams = {
   form: {
     name: string;
     date: string;
+    color: string;
     users_ids: string[];
   };
 };

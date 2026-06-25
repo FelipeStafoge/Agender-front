@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --open",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@ckpack/vue-color": "^1.6.0",
     "@tanstack/vue-query": "^5.101.0",
     "@vuepic/vue-datepicker": "^14.0.0",
     "axios": "^1.18.0",
