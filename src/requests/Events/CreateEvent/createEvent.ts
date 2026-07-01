@@ -7,6 +7,7 @@ type CreateEventParams = {
     date: string;
     color: string;
     users_ids: string[];
+    calendar_id?: string | number | null;
   };
 };
 
