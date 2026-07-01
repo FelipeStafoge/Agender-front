@@ -6,8 +6,13 @@ const props = defineProps<{
   visible: boolean;
   events: Event[];
   calendars: Calendar[];
+  dayDate: Date | null;
+  contextCalendarId: string | null;
 }>();
-const emit = defineEmits<{ (e: "update:visible", value: boolean): void }>();
+const emit = defineEmits<{
+  (e: "update:visible", value: boolean): void;
+  (e: "create-event"): void;
+}>();
 
 const close = () => {
   emit("update:visible", false);
@@ -39,6 +44,9 @@ const getCalendarInfo = (calendarId: string | null) => {
     <div class="modal-content">
       <div class="modal-header">
         <h2 class="modal-title">Eventos do Dia</h2>
+        <button class="create-event-btn" @click="emit('create-event')">
+          Criar Evento
+        </button>
         <button class="close-btn" @click="close">&times;</button>
       </div>
       <div class="tab-body">
@@ -123,6 +131,23 @@ const getCalendarInfo = (calendarId: string | null) => {
 
 .close-btn:hover {
   color: #374151;
+}
+
+.create-event-btn {
+  margin-left: 16px;
+  padding: 8px 16px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.create-event-btn:hover {
+  background: #6d28d9;
 }
 
 .tab-body {

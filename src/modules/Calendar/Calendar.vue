@@ -22,6 +22,8 @@ const selectedCalendarColor = ref<string>("#7c3aed");
 const selectedCalendarDate = ref<Date | null>(null);
 const showDayEventsModal = ref(false);
 const selectedDayEvents = ref<Event[]>([]);
+const selectedDayEventsDate = ref<Date | null>(null);
+const selectedDayEventsContextCalendarId = ref<string | null>(null);
 
 const listEvents = useGetListEvents();
 const listCalendars = useGetListCalendars();
@@ -112,6 +114,8 @@ const onMainDayClick = (date: Date) => {
   );
   if (events.length > 0) {
     selectedDayEvents.value = events;
+    selectedDayEventsDate.value = date;
+    selectedDayEventsContextCalendarId.value = null;
     showDayEventsModal.value = true;
   } else {
     selectedCalendarId.value = null;
@@ -131,6 +135,8 @@ const onCalendarDayClick = (calendar: Calendar, date: Date) => {
   );
   if (events.length === 0) return;
   selectedDayEvents.value = events;
+  selectedDayEventsDate.value = date;
+  selectedDayEventsContextCalendarId.value = calendar.id;
   showDayEventsModal.value = true;
 };
 
@@ -146,35 +152,49 @@ const onCalendarCardDayClick = (calendar: Calendar, date: Date) => {
     openGroupEventModal(calendar, date);
   }
 };
+
+const handleCreateFromDayEvents = () => {
+  const calId = selectedDayEventsContextCalendarId.value;
+  showDayEventsModal.value = false;
+  if (calId) {
+    const cal = calendars.value.find((c) => c.id === calId);
+    selectedCalendarId.value = calId;
+    selectedCalendarColor.value = cal?.color || "#7c3aed";
+  } else {
+    selectedCalendarId.value = null;
+    selectedCalendarColor.value = "#7c3aed";
+  }
+  selectedCalendarDate.value = selectedDayEventsDate.value;
+  showCreateEventModal.value = true;
+};
 </script>
 
 <template>
   <div class="container">
     <div class="left-panel">
-      <VueDatePicker
-        class="calendar-custom"
-        v-model="date"
-        inline
-        auto-apply
-        :enable-time-picker="false"
-        no-today
-        :markers="markers"
-        @date-click="onMainDayClick"
-      />
-    </div>
-
-    <div class="center-divider">
-      <div class="center-buttons">
-        <button class="open-modal-btn" @click="openPersonalEventModal">
+      <div class="left-content">
+        <VueDatePicker
+          class="calendar-custom"
+          v-model="date"
+          inline
+          auto-apply
+          :enable-time-picker="false"
+          no-today
+          :markers="markers"
+          @date-click="onMainDayClick"
+        />
+        <button class="open-modal-btn novo-evento-btn" @click="openPersonalEventModal">
           Novo Evento
-        </button>
-        <button class="open-modal-btn" @click="showCreateAgenderModal = true">
-          Novo Calendário
         </button>
       </div>
     </div>
 
+    <div class="center-divider-line"></div>
+
     <div class="right-panel">
+      <button class="open-modal-btn create-calendar-btn" @click="showCreateAgenderModal = true">
+        Novo Calendário
+      </button>
       <div class="calendar-grid">
         <div
           v-for="calendar in calendars.slice(0, 6)"
@@ -217,6 +237,9 @@ const onCalendarCardDayClick = (calendar: Calendar, date: Date) => {
       v-model:visible="showDayEventsModal"
       :events="selectedDayEvents"
       :calendars="calendars"
+      :day-date="selectedDayEventsDate"
+      :context-calendar-id="selectedDayEventsContextCalendarId"
+      @create-event="handleCreateFromDayEvents"
     />
   </div>
 </template>
@@ -238,33 +261,11 @@ const onCalendarCardDayClick = (calendar: Calendar, date: Date) => {
   align-items: center;
 }
 
-.center-divider {
-  width: 80px;
+.left-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.center-divider::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: #d0d0d0;
-  z-index: 0;
-}
-
-.center-buttons {
-  display: flex;
-  flex-direction: column;
+  align-items: flex-end;
   gap: 16px;
-  z-index: 1;
-  padding: 60px 0;
 }
 
 .open-modal-btn {
@@ -282,6 +283,24 @@ const onCalendarCardDayClick = (calendar: Calendar, date: Date) => {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.center-divider-line {
+  width: 1px;
+  background: #d0d0d0;
+  flex-shrink: 0;
+}
+
+.create-calendar-btn {
+  margin-bottom: 16px;
+  display: block;
+  width: fit-content;
+}
+
+.novo-evento-btn {
+  width: fit-content;
 }
 
 .calendar-grid {
@@ -292,7 +311,7 @@ const onCalendarCardDayClick = (calendar: Calendar, date: Date) => {
 }
 
 .calendar-card {
-  background: #f5f5f5;
+  background: #eef2ff;
   border-radius: 8px;
   padding: 3px;
   display: flex;
