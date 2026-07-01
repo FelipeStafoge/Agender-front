@@ -90,24 +90,55 @@ const openPersonalEventModal = () => {
 </script>
 
 <template>
-  <div>
-    <VueDatePicker
-      v-model="date"
-      inline
-      auto-apply
-      :enable-time-picker="false"
-      no-today
-      :markers="markers"
-    />
+  <div class="container">
+    <div class="left-panel">
+      <VueDatePicker
+        class="calendar-custom"
+        v-model="date"
+        inline
+        auto-apply
+        :enable-time-picker="false"
+        no-today
+        :markers="markers"
+      />
+    </div>
 
-    <button class="open-modal-btn" @click="openPersonalEventModal">
-      Novo Evento
-    </button>
+    <div class="center-divider">
+      <div class="center-buttons">
+        <button class="open-modal-btn" @click="openPersonalEventModal">
+          Novo Evento
+        </button>
+        <button class="open-modal-btn" @click="showCreateAgenderModal = true">
+          Novo Calendário
+        </button>
+      </div>
+    </div>
 
-    <button class="open-modal-btn" @click="showCreateAgenderModal = true">
-      Novo calendario
-    </button>
+    <div class="right-panel">
+      <div class="calendar-grid">
+        <div
+          v-for="calendar in calendars.slice(0, 6)"
+          :key="calendar.id"
+          class="calendar-card"
+        >
+          <div class="calendar-header">
+            <p>{{ calendar.name }}</p>
+            <button class="close-button">✕</button>
+          </div>
 
+          <VueDatePicker
+            v-model="calendarDates[calendar.id]"
+            inline
+            no-today
+            auto-apply
+            :markers="createMarkers(eventsByCalendarId[calendar.id] || [])"
+            @update:model-value="(d: Date) => openGroupEventModal(calendar, d)"
+          />
+        </div>
+      </div>
+    </div>
+
+    <NewCalendarModal v-model:visible="showCreateAgenderModal" />
     <NewEventModal
       v-model:visible="showCreateEventModal"
       :calendar-id="selectedCalendarId"
@@ -115,51 +146,56 @@ const openPersonalEventModal = () => {
       :calendars="calendars"
       :initial-date="selectedCalendarDate"
     />
-    <div v-for="calendar in calendars" :key="calendar.id">
-      <div
-        style="
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          flex-direction: column;
-          background-color: aqua;
-          width: fit-content;
-          height: fit-content;
-        "
-        id="{{calendar.id}}"
-      >
-        <div class="calendar-header">
-          <p>{{ calendar.name }}</p>
-
-          <button class="close-button">✕</button>
-        </div>
-        <div class="participants">
-          <div
-            v-for="p in calendar.participants"
-            :key="p.userId"
-            class="participant"
-          >
-            <span>{{ p.name }}</span>
-            <span class="role-badge">{{ p.role === 'Owner' ? 'Dono' : 'Membro' }}</span>
-          </div>
-        </div>
-        <VueDatePicker
-          v-model="calendarDates[calendar.id]"
-          inline
-          no-today
-          :markers="createMarkers(eventsByCalendarId[calendar.id] || [])"
-          @update:model-value="(d: Date) => openGroupEventModal(calendar, d)"
-        />
-      </div>
-    </div>
-
-    <NewCalendarModal v-model:visible="showCreateAgenderModal" />
   </div>
 </template>
 
 <style scoped>
+.container {
+  display: flex;
+  height: calc(100vh - 64px);
+}
+
+.calendar-custom :deep(.dp--outer-menu-wrap) {
+  width: 500px;
+}
+
+.left-panel {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center-divider {
+  width: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.center-divider::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #d0d0d0;
+  z-index: 0;
+}
+
+.center-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  z-index: 1;
+  padding: 60px 0;
+}
+
 .open-modal-btn {
-  margin: 16px;
   padding: 12px 24px;
   background: #7c3aed;
   color: #fff;
@@ -167,6 +203,29 @@ const openPersonalEventModal = () => {
   border-radius: 8px;
   cursor: pointer;
   font-size: 16px;
+  white-space: nowrap;
+}
+
+.right-panel {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-content: start;
+}
+
+.calendar-card {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 :deep(.dp--marker-base) {
@@ -201,23 +260,7 @@ const openPersonalEventModal = () => {
   border: none;
   background: transparent;
   cursor: pointer;
-
   font-size: 18px;
-}
-
-.participants {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 100%;
-  padding: 8px 0;
-}
-
-.participant {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
 }
 
 .role-badge {
