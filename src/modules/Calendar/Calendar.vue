@@ -5,6 +5,7 @@ import { VueDatePicker } from "@vuepic/vue-datepicker";
 import NewEventModal from "@/modals/NewEvent/NewEvent.vue";
 import NewCalendarModal from "@/modals/NewCalendar/NewCalendar.vue";
 import CalendarActionsModal from "@/modals/CalendarActions/CalendarActions.vue";
+import DayEventsModal from "@/modals/DayEvents/DayEvents.vue";
 import { useGetListEvents } from "@/requests/Events/ListEvents/listEvent";
 import { useGetListCalendars } from "@/requests/Calendar/getListCalendar";
 import { useAuth } from "@/utils/Authentication/auth";
@@ -19,6 +20,8 @@ const calendarDates = ref<Record<string | number, Date>>({});
 const selectedCalendarId = ref<string | number | null>(null);
 const selectedCalendarColor = ref<string>("#7c3aed");
 const selectedCalendarDate = ref<Date | null>(null);
+const showDayEventsModal = ref(false);
+const selectedDayEvents = ref<Event[]>([]);
 
 const listEvents = useGetListEvents();
 const listCalendars = useGetListCalendars();
@@ -98,6 +101,51 @@ const openPersonalEventModal = () => {
   selectedCalendarDate.value = null;
   showCreateEventModal.value = true;
 };
+
+const onMainDayClick = (date: Date) => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const dateStr = `${day}/${month}/${year}`;
+  const events = (listEvents.data.value ?? []).filter(
+    (e) => e.date === dateStr,
+  );
+  if (events.length > 0) {
+    selectedDayEvents.value = events;
+    showDayEventsModal.value = true;
+  } else {
+    selectedCalendarId.value = null;
+    selectedCalendarColor.value = "#7c3aed";
+    selectedCalendarDate.value = date;
+    showCreateEventModal.value = true;
+  }
+};
+
+const onCalendarDayClick = (calendar: Calendar, date: Date) => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  const dateStr = `${day}/${month}/${year}`;
+  const events = (eventsByCalendarId.value[calendar.id] ?? []).filter(
+    (e: Event) => e.date === dateStr,
+  );
+  if (events.length === 0) return;
+  selectedDayEvents.value = events;
+  showDayEventsModal.value = true;
+};
+
+const onCalendarCardDayClick = (calendar: Calendar, date: Date) => {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const dateStr = `${day}/${month}/${date.getFullYear()}`;
+  const calEvents = eventsByCalendarId.value[calendar.id] ?? [];
+  const hasEvents = calEvents.some((e: Event) => e.date === dateStr);
+  if (hasEvents) {
+    onCalendarDayClick(calendar, date);
+  } else {
+    openGroupEventModal(calendar, date);
+  }
+};
 </script>
 
 <template>
@@ -111,6 +159,7 @@ const openPersonalEventModal = () => {
         :enable-time-picker="false"
         no-today
         :markers="markers"
+        @date-click="onMainDayClick"
       />
     </div>
 
@@ -145,7 +194,7 @@ const openPersonalEventModal = () => {
             no-today
             auto-apply
             :markers="createMarkers(eventsByCalendarId[calendar.id] || [])"
-            @update:model-value="(d: Date) => openGroupEventModal(calendar, d)"
+            @date-click="(d: Date) => onCalendarCardDayClick(calendar, d)"
           />
         </div>
       </div>
@@ -163,6 +212,11 @@ const openPersonalEventModal = () => {
       :calendar-color="selectedCalendarColor"
       :calendars="calendars"
       :initial-date="selectedCalendarDate"
+    />
+    <DayEventsModal
+      v-model:visible="showDayEventsModal"
+      :events="selectedDayEvents"
+      :calendars="calendars"
     />
   </div>
 </template>
@@ -244,6 +298,7 @@ const openPersonalEventModal = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-x: hidden;
 }
 
 :deep(.dp--marker-base) {
