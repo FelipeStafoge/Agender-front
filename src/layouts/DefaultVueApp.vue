@@ -19,11 +19,12 @@ import Topbar from "@/components/Topbar/index.vue";
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.20) 0%, rgba(124, 58, 237, 0.06) 100%);
 }
 
 .content-wrapper {
   flex: 1;
-  background-color: #d3d3d3;
+  background: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
