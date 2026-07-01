@@ -34,7 +34,7 @@ const calendarOptions = computed(() => [
   ...(props.calendars || []).map((c: Calendar) => ({
     id: c.id,
     name: c.name,
-    color: c.DefaultColor || c.color || "#7c3aed",
+    color: c.color || "#7c3aed",
   })),
 ]);
 
@@ -188,11 +188,7 @@ const handleCreateEvent = async () => {
           @change="onCalendarChange"
         >
           <option value="">Meus Eventos</option>
-          <option
-            v-for="cal in calendars"
-            :key="cal.id"
-            :value="cal.id"
-          >
+          <option v-for="cal in calendars" :key="cal.id" :value="cal.id">
             {{ cal.name }}
           </option>
         </select>
@@ -252,7 +248,9 @@ const handleCreateEvent = async () => {
           class="color-swatch"
           :style="{ background: newEventForm.color }"
         ></span>
-        <span class="color-label">Cor do calendário: {{ newEventForm.color }}</span>
+        <span class="color-label"
+          >Cor do calendário: {{ newEventForm.color }}</span
+        >
       </div>
 
       <div class="field-wrap">

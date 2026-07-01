@@ -4,12 +4,16 @@ import "@vuepic/vue-datepicker/dist/main.css";
 import { VueDatePicker } from "@vuepic/vue-datepicker";
 import NewEventModal from "@/modals/NewEvent/NewEvent.vue";
 import NewCalendarModal from "@/modals/NewCalendar/NewCalendar.vue";
+import CalendarActionsModal from "@/modals/CalendarActions/CalendarActions.vue";
 import { useGetListEvents } from "@/requests/Events/ListEvents/listEvent";
 import { useGetListCalendars } from "@/requests/Calendar/getListCalendar";
+import { useAuth } from "@/utils/Authentication/auth";
 import type { Event, Calendar } from "@/types/api";
 
 const showCreateEventModal = ref(false);
 const showCreateAgenderModal = ref(false);
+const showCalendarActions = ref(false);
+const selectedCalendar = ref<Calendar | null>(null);
 const date = ref(new Date());
 const calendarDates = ref<Record<string | number, Date>>({});
 const selectedCalendarId = ref<string | number | null>(null);
@@ -74,9 +78,16 @@ const eventsByCalendarId = computed(() => {
   return map;
 });
 
+const auth = useAuth();
+
+const openCalendarActions = (calendar: Calendar) => {
+  selectedCalendar.value = calendar;
+  showCalendarActions.value = true;
+};
+
 const openGroupEventModal = (calendar: Calendar, selectedDate: Date) => {
   selectedCalendarId.value = calendar.id;
-  selectedCalendarColor.value = calendar.DefaultColor || "#7c3aed";
+  selectedCalendarColor.value = calendar.color || "#7c3aed";
   selectedCalendarDate.value = selectedDate;
   showCreateEventModal.value = true;
 };
@@ -123,7 +134,9 @@ const openPersonalEventModal = () => {
         >
           <div class="calendar-header">
             <p>{{ calendar.name }}</p>
-            <button class="close-button">✕</button>
+            <button class="more-button" @click="openCalendarActions(calendar)">
+              ...
+            </button>
           </div>
 
           <VueDatePicker
@@ -138,6 +151,11 @@ const openPersonalEventModal = () => {
       </div>
     </div>
 
+    <CalendarActionsModal
+      v-model:visible="showCalendarActions"
+      :calendar="selectedCalendar"
+      :events="eventsByCalendarId[selectedCalendar?.id ?? ''] || []"
+    />
     <NewCalendarModal v-model:visible="showCreateAgenderModal" />
     <NewEventModal
       v-model:visible="showCreateEventModal"
@@ -254,13 +272,17 @@ const openPersonalEventModal = () => {
   margin: 0;
 }
 
-.close-button {
+.more-button {
   position: absolute;
   right: 0;
   border: none;
   background: transparent;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  line-height: 1;
+  color: #555;
 }
 
 .role-badge {
