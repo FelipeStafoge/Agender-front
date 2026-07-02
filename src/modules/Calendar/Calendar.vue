@@ -6,15 +6,17 @@ import NewEventModal from "@/modals/NewEvent/NewEvent.vue";
 import NewCalendarModal from "@/modals/NewCalendar/NewCalendar.vue";
 import CalendarActionsModal from "@/modals/CalendarActions/CalendarActions.vue";
 import DayEventsModal from "@/modals/DayEvents/DayEvents.vue";
-import { useGetListEvents } from "@/requests/Events/ListEvents/listEvent";
+import CalendarCard from "@/components/CalendarCard.vue";
+import { useGetListEventsByRange } from "@/requests/Events/ListEventsByRange/listEventsByRange";
 import { useGetListCalendars } from "@/requests/Calendar/getListCalendar";
-import { useAuth } from "@/utils/Authentication/auth";
+import { formatDate } from "@/utils/formatDate";
 import type { Event, Calendar } from "@/types/api";
 
 const showCreateEventModal = ref(false);
 const showCreateAgenderModal = ref(false);
 const showCalendarActions = ref(false);
 const selectedCalendar = ref<Calendar | null>(null);
+const selectedCalendarEvents = ref<Event[]>([]);
 const date = ref(new Date());
 const calendarDates = ref<Record<string | number, Date>>({});
 const selectedCalendarId = ref<string | number | null>(null);
@@ -25,9 +27,25 @@ const selectedDayEvents = ref<Event[]>([]);
 const selectedDayEventsDate = ref<Date | null>(null);
 const selectedDayEventsContextCalendarId = ref<string | null>(null);
 
-const listEvents = useGetListEvents();
+const windowStart = computed(() => {
+  const d = new Date(date.value);
+  d.setDate(1);
+  return formatDate(d);
+});
+
+const windowEnd = computed(() => {
+  const d = new Date(
+    date.value.getFullYear(),
+    date.value.getMonth() + 2,
+    0,
+  );
+  return formatDate(d);
+});
+
+const listEvents = useGetListEventsByRange(windowStart, windowEnd);
 const listCalendars = useGetListCalendars();
 const calendars = computed(() => listCalendars.data.value ?? []);
+
 watch(
   calendars,
   (newCalendars) => {
@@ -41,22 +59,17 @@ watch(
 );
 
 const parseEventDate = (dateStr: string): Date => {
-  const parts = dateStr.split("/");
-  const day = Number(parts[0]);
-  const month = Number(parts[1]);
-  const year = Number(parts[2]);
+  const [day, month, year] = dateStr.split("/").map(Number);
   return new Date(year, month - 1, day);
 };
 
 const createMarkers = (events: Event[] = []) => {
-  const grouped = new Map<string, any[]>();
-
+  const grouped = new Map<string, Event[]>();
   for (const event of events) {
     const existing = grouped.get(event.date) || [];
     existing.push(event);
     grouped.set(event.date, existing);
   }
-
   return Array.from(grouped.entries()).map(([dateStr, dateEvents]) => ({
     date: parseEventDate(dateStr),
     color: dateEvents[0].color || "#7c3aed",
@@ -68,27 +81,9 @@ const createMarkers = (events: Event[] = []) => {
   }));
 };
 
-const markers = computed(() => createMarkers(listEvents.data.value));
-
-const eventsByCalendarId = computed(() => {
-  const events = listEvents.data.value ?? [];
-  const map: Record<string | number, Event[]> = {};
-  for (const e of events) {
-    const cid = e.calendarId;
-    if (cid != null) {
-      if (!map[cid]) map[cid] = [];
-      map[cid].push(e);
-    }
-  }
-  return map;
-});
-
-const auth = useAuth();
-
-const openCalendarActions = (calendar: Calendar) => {
-  selectedCalendar.value = calendar;
-  showCalendarActions.value = true;
-};
+const markers = computed(() =>
+  createMarkers(listEvents.data.value),
+);
 
 const openGroupEventModal = (calendar: Calendar, selectedDate: Date) => {
   selectedCalendarId.value = calendar.id;
@@ -104,53 +99,45 @@ const openPersonalEventModal = () => {
   showCreateEventModal.value = true;
 };
 
-const onMainDayClick = (date: Date) => {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  const dateStr = `${day}/${month}/${year}`;
+const onMainDayClick = (d: Date) => {
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const dateStr = `${day}/${month}/${d.getFullYear()}`;
   const events = (listEvents.data.value ?? []).filter(
     (e) => e.date === dateStr,
   );
   if (events.length > 0) {
     selectedDayEvents.value = events;
-    selectedDayEventsDate.value = date;
+    selectedDayEventsDate.value = d;
     selectedDayEventsContextCalendarId.value = null;
     showDayEventsModal.value = true;
   } else {
     selectedCalendarId.value = null;
     selectedCalendarColor.value = "#7c3aed";
-    selectedCalendarDate.value = date;
+    selectedCalendarDate.value = d;
     showCreateEventModal.value = true;
   }
 };
 
-const onCalendarDayClick = (calendar: Calendar, date: Date) => {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  const dateStr = `${day}/${month}/${year}`;
-  const events = (eventsByCalendarId.value[calendar.id] ?? []).filter(
-    (e: Event) => e.date === dateStr,
-  );
-  if (events.length === 0) return;
-  selectedDayEvents.value = events;
-  selectedDayEventsDate.value = date;
-  selectedDayEventsContextCalendarId.value = calendar.id;
-  showDayEventsModal.value = true;
+const onCalendarDayClick = (
+  calendar: Calendar,
+  d: Date,
+  dayEvents: Event[],
+) => {
+  if (dayEvents.length > 0) {
+    selectedDayEvents.value = dayEvents;
+    selectedDayEventsDate.value = d;
+    selectedDayEventsContextCalendarId.value = calendar.id;
+    showDayEventsModal.value = true;
+  } else {
+    openGroupEventModal(calendar, d);
+  }
 };
 
-const onCalendarCardDayClick = (calendar: Calendar, date: Date) => {
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const dateStr = `${day}/${month}/${date.getFullYear()}`;
-  const calEvents = eventsByCalendarId.value[calendar.id] ?? [];
-  const hasEvents = calEvents.some((e: Event) => e.date === dateStr);
-  if (hasEvents) {
-    onCalendarDayClick(calendar, date);
-  } else {
-    openGroupEventModal(calendar, date);
-  }
+const onOpenCalendarActions = (calendar: Calendar, events: Event[]) => {
+  selectedCalendar.value = calendar;
+  selectedCalendarEvents.value = events;
+  showCalendarActions.value = true;
 };
 
 const handleCreateFromDayEvents = () => {
@@ -196,34 +183,23 @@ const handleCreateFromDayEvents = () => {
         Novo Calendário
       </button>
       <div class="calendar-grid">
-        <div
-          v-for="calendar in calendars.slice(0, 6)"
-          :key="calendar.id"
-          class="calendar-card"
-        >
-          <div class="calendar-header">
-            <p>{{ calendar.name }}</p>
-            <button class="more-button" @click="openCalendarActions(calendar)">
-              ...
-            </button>
-          </div>
-
-          <VueDatePicker
-            v-model="calendarDates[calendar.id]"
-            inline
-            no-today
-            auto-apply
-            :markers="createMarkers(eventsByCalendarId[calendar.id] || [])"
-            @date-click="(d: Date) => onCalendarCardDayClick(calendar, d)"
-          />
-        </div>
+        <CalendarCard
+          v-for="cal in calendars.slice(0, 6)"
+          :key="cal.id"
+          v-model="calendarDates[cal.id]"
+          :calendar="cal"
+          :window-start="windowStart"
+          :window-end="windowEnd"
+          @day-click="onCalendarDayClick"
+          @open-actions="onOpenCalendarActions"
+        />
       </div>
     </div>
 
     <CalendarActionsModal
       v-model:visible="showCalendarActions"
       :calendar="selectedCalendar"
-      :events="eventsByCalendarId[selectedCalendar?.id ?? ''] || []"
+      :events="selectedCalendarEvents"
     />
     <NewCalendarModal v-model:visible="showCreateAgenderModal" />
     <NewEventModal
@@ -310,16 +286,6 @@ const handleCreateFromDayEvents = () => {
   align-content: start;
 }
 
-.calendar-card {
-  background: #eef2ff;
-  border-radius: 8px;
-  padding: 3px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  overflow-x: hidden;
-}
-
 :deep(.dp--marker-base) {
   height: 100% !important;
   width: 100% !important;
@@ -332,31 +298,6 @@ const handleCreateFromDayEvents = () => {
 
 :deep(.dp--tp-wrap) {
   display: none !important;
-}
-
-.calendar-header {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-}
-
-.calendar-header p {
-  margin: 0;
-}
-
-.more-button {
-  position: absolute;
-  right: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 20px;
-  font-weight: bold;
-  letter-spacing: 2px;
-  line-height: 1;
-  color: #555;
 }
 
 .role-badge {
