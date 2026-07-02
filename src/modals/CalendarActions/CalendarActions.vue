@@ -97,7 +97,8 @@ const handleDelete = async () => {
           </div>
           <div v-else class="list">
             <div v-for="event in events" :key="event.id" class="list-item">
-              {{ event.name }} - {{ event.date }}
+              <strong>{{ event.name }}</strong> - {{ event.date }}
+              <p v-if="event.description" class="event-description">{{ event.description }}</p>
             </div>
           </div>
         </div>
@@ -283,5 +284,11 @@ const handleDelete = async () => {
   font-size: 13px;
   text-align: center;
   margin: 0;
+}
+
+.event-description {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0 0;
 }
 </style>

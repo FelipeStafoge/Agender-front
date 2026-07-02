@@ -9,6 +9,7 @@ export interface Event {
   id: string;
   name: string;
   date: string;
+  description: string | null;
   color: string;
   calendarId: string | null;
   createdAt: string;
