@@ -3,6 +3,9 @@ import { useQueryClient } from "@tanstack/vue-query";
 import type { Calendar, Event } from "@/types/api";
 import { useLeaveCalendarRequest } from "@/requests/Calendar/leaveCalendar";
 import { useDeleteCalendarRequest } from "@/requests/Calendar/deleteCalendar";
+import { useAddParticipantInCalendar } from "@/requests/Calendar/addParticipantInCalendar";
+import { useRemoveParticipantInCalendar } from "@/requests/Calendar/removeParticipantInCalendar";
+import { getUserInfo } from "@/requests/Events/getUserInfo/getUserInfo";
 import { useAuth } from "@/utils/Authentication/auth";
 import { computed, ref } from "vue";
 
@@ -16,12 +19,23 @@ const emit = defineEmits<{ (e: "update:visible", value: boolean): void }>();
 const queryClient = useQueryClient();
 const leaveCalendar = useLeaveCalendarRequest();
 const deleteCalendar = useDeleteCalendarRequest();
+const addParticipant = useAddParticipantInCalendar();
+const removeParticipant = useRemoveParticipantInCalendar();
 const auth = useAuth();
 const submitError = ref("");
 const activeTab = ref<"overview" | "people" | "edit">("overview");
 
+const userInput = ref("");
+const userSearchError = ref("");
+const addError = ref("");
+
+const currentUserId = computed(() => auth.getUser?.account_id);
+
 const close = () => {
   submitError.value = "";
+  userInput.value = "";
+  userSearchError.value = "";
+  addError.value = "";
   emit("update:visible", false);
 };
 
@@ -57,6 +71,49 @@ const handleDelete = async () => {
     close();
   } catch {
     submitError.value = "Erro ao deletar calendário. Tente novamente.";
+  }
+};
+
+const handleAddParticipant = async () => {
+  if (!userInput.value || !props.calendar) return;
+
+  userSearchError.value = "";
+  addError.value = "";
+
+  try {
+    const user = await getUserInfo({ NameWithCode: userInput.value });
+    await addParticipant.mutateAsync({
+      calendarId: props.calendar.id,
+      userId: user.id,
+    });
+    queryClient.invalidateQueries({ queryKey: ["listCalendar"] });
+    userInput.value = "";
+  } catch (error: any) {
+    if (error?.response?.status === 404) {
+      userSearchError.value = "Usuário não encontrado";
+    } else if (error?.response?.status === 400) {
+      addError.value = "Usuário já é participante ou formato inválido";
+    } else if (error?.response?.status === 403) {
+      addError.value = "Apenas o dono pode adicionar participantes";
+    } else {
+      addError.value = "Erro ao adicionar participante";
+    }
+  }
+};
+
+const handleRemoveParticipant = async (userId: string) => {
+  if (!props.calendar) return;
+
+  submitError.value = "";
+
+  try {
+    await removeParticipant.mutateAsync({
+      calendarId: props.calendar.id,
+      userId,
+    });
+    queryClient.invalidateQueries({ queryKey: ["listCalendar"] });
+  } catch {
+    submitError.value = "Erro ao remover participante";
   }
 };
 </script>
@@ -104,6 +161,28 @@ const handleDelete = async () => {
         </div>
 
         <div v-if="activeTab === 'people'" class="tab-content">
+          <div v-if="isOwner" class="add-participant-wrap">
+            <div class="add-participant-row">
+              <input
+                v-model="userInput"
+                placeholder="Nome#Código"
+                class="form-input"
+                @keydown.enter.prevent="handleAddParticipant"
+              />
+              <button
+                class="add-btn"
+                :disabled="addParticipant.isPending.value || !userInput.trim()"
+                @click="handleAddParticipant"
+              >
+                {{ addParticipant.isPending.value ? "..." : "Adicionar" }}
+              </button>
+            </div>
+            <span v-if="userSearchError" class="error-text">{{
+              userSearchError
+            }}</span>
+            <span v-if="addError" class="error-text">{{ addError }}</span>
+          </div>
+
           <div v-if="calendar.participants.length === 0" class="empty-state">
             Nenhum participante neste calendário.
           </div>
@@ -111,10 +190,22 @@ const handleDelete = async () => {
             <div
               v-for="participant in calendar.participants"
               :key="participant.userId"
-              class="list-item"
+              class="list-item participant-item"
             >
-              {{ participant.name }} -
-              {{ participant.role === "Owner" ? "Proprietário" : "Membro" }}
+              <div class="participant-info">
+                <span>{{ participant.name }}</span>
+                <span class="role-badge">{{
+                  participant.role === "Owner" ? "Proprietário" : "Membro"
+                }}</span>
+              </div>
+              <button
+                v-if="isOwner && participant.userId !== currentUserId"
+                class="remove-btn"
+                :disabled="removeParticipant.isPending.value"
+                @click="handleRemoveParticipant(participant.userId)"
+              >
+                Remover
+              </button>
             </div>
           </div>
         </div>
@@ -290,5 +381,79 @@ const handleDelete = async () => {
   font-size: 13px;
   color: #6b7280;
   margin: 4px 0 0;
+}
+
+.add-participant-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.add-participant-row {
+  display: flex;
+  gap: 8px;
+}
+
+.form-input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+  background: #fff;
+}
+
+.add-btn {
+  padding: 10px 16px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.add-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.participant-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7c3aed;
+  background: #f3e8ff;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.remove-btn {
+  padding: 6px 12px;
+  background: #e53e3e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.remove-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
