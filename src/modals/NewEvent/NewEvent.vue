@@ -44,6 +44,7 @@ const queryClient = useQueryClient();
 const newEventInitialForm = {
   name: "",
   date: "",
+  description: "",
   color: "#7c3aed",
   users_ids: [] as string[],
 };
@@ -155,6 +156,7 @@ const handleCreateEvent = async () => {
       form: {
         name: newEventForm.name,
         date: newEventForm.date,
+        description: newEventForm.description || null,
         color: newEventForm.color,
         users_ids: newEventForm.users_ids,
         calendar_id: selectedCalendarId.value,
@@ -203,6 +205,15 @@ const handleCreateEvent = async () => {
         <span v-if="formErrors.name" class="error-text">{{
           formErrors.name
         }}</span>
+      </div>
+
+      <div class="field-wrap">
+        <textarea
+          v-model="newEventForm.description"
+          placeholder="Adicionar descrição..."
+          class="form-textarea"
+          rows="3"
+        ></textarea>
       </div>
 
       <div class="field-wrap">
@@ -320,13 +331,19 @@ const handleCreateEvent = async () => {
   width: 70%;
 }
 
-.form-select {
+.form-select,
+.form-textarea {
   width: 70%;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 8px;
   font-size: 14px;
   background: #fff;
+}
+
+.form-textarea {
+  resize: vertical;
+  font-family: inherit;
 }
 
 .form-select:disabled {
@@ -392,7 +409,8 @@ const handleCreateEvent = async () => {
   gap: 4px;
 }
 
-.field-wrap .form-input {
+.field-wrap .form-input,
+.field-wrap .form-textarea {
   width: 100%;
 }
 

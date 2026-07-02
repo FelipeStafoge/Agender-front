@@ -18,6 +18,7 @@ const error = computed(() => getUserEvents.error.value);
   <div v-else>
     <div v-for="event in data" :key="event.id" class="event-card">
       <strong>{{ event.name }}</strong> - {{ event.date }}
+      <p v-if="event.description" class="event-description">{{ event.description }}</p>
       <div class="participants">
         <div
           v-for="p in event.participants"
@@ -55,5 +56,11 @@ const error = computed(() => getUserEvents.error.value);
   color: #7c3aed;
   font-weight: 600;
   font-size: 11px;
+}
+
+.event-description {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 4px 0;
 }
 </style>
