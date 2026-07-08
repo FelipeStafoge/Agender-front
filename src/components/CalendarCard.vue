@@ -134,4 +134,11 @@ const onOpenActions = () => {
   line-height: 1;
   color: #555;
 }
+
+@media (max-width: 768px) {
+  .calendar-card {
+    width: 100%;
+    padding: 8px;
+  }
+}
 </style>

@@ -31,6 +31,12 @@ import Topbar from "@/components/Topbar/index.vue";
   padding: 0 100px;
 }
 
+@media (max-width: 768px) {
+  .content-wrapper {
+    padding: 0 16px;
+  }
+}
+
 .content {
   width: 100%;
   height: 100%;

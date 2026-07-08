@@ -436,4 +436,31 @@ const handleCreateEvent = async () => {
   border-radius: 6px;
   font-size: 13px;
 }
+
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 24px 16px;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
+
+  .form-input,
+  .field-wrap,
+  .confirm-btn,
+  .form-select,
+  .form-textarea,
+  .color-picker-wrap,
+  .general-error {
+    width: 100%;
+  }
+
+  .close-btn {
+    top: 16px;
+    right: 16px;
+  }
+}
 </style>

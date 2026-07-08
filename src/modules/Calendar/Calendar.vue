@@ -305,4 +305,49 @@ const handleCreateFromDayEvents = () => {
   color: #7c3aed;
   font-weight: 600;
 }
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+  }
+
+  .calendar-custom :deep(.dp--outer-menu-wrap) {
+    width: 100% !important;
+  }
+
+  .left-panel {
+    padding: 16px 16px 0;
+  }
+
+  .left-content {
+    align-items: center;
+    width: 100%;
+  }
+
+  .novo-evento-btn {
+    width: 100%;
+  }
+
+  .center-divider-line {
+    width: 100%;
+    height: 1px;
+    margin: 16px 0;
+  }
+
+  .right-panel {
+    padding: 0 16px 24px;
+    overflow-y: visible;
+  }
+
+  .create-calendar-btn {
+    width: 100%;
+    margin-bottom: 16px;
+  }
+
+  .calendar-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
