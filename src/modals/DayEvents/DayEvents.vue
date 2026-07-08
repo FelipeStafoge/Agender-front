@@ -203,4 +203,39 @@ const getCalendarInfo = (calendarId: string | null) => {
   color: #6b7280;
   line-height: 1.5;
 }
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+  }
+
+  .modal-header {
+    padding: 0 12px;
+    flex-wrap: wrap;
+  }
+
+  .modal-title {
+    font-size: 16px;
+    padding: 12px 0;
+  }
+
+  .create-event-btn {
+    margin-left: auto;
+    font-size: 13px;
+    padding: 6px 14px;
+  }
+
+  .close-btn {
+    padding: 4px 12px;
+  }
+
+  .tab-body {
+    padding: 10px 16px;
+  }
+}
 </style>

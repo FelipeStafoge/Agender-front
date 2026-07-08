@@ -274,4 +274,20 @@ const emptyMessage = computed(() => {
   color: #6b7280;
   line-height: 1.5;
 }
+
+@media (max-width: 768px) {
+  .events-panel {
+    width: 100% !important;
+    max-height: none !important;
+  }
+
+  .tab {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+
+  .events-list {
+    padding: 12px;
+  }
+}
 </style>

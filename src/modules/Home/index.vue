@@ -72,4 +72,19 @@ const thirtyDaysLater = computed(() => {
   gap: 10px;
   width: 1000px;
 }
+
+@media (max-width: 768px) {
+  .home-container {
+    padding: 24px 0;
+    gap: 16px;
+    height: auto;
+    min-height: 100%;
+  }
+
+  .top-row {
+    flex-direction: column;
+    width: 100%;
+    gap: 16px;
+  }
+}
 </style>

@@ -381,6 +381,44 @@ const handleLogin = async () => {
   font-weight: 500;
 }
 
+@media (max-width: 768px) {
+  .auth-page {
+    padding: 24px 16px;
+    align-items: flex-start;
+    padding-top: 40px;
+  }
+
+  .auth-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+    max-width: 400px;
+  }
+
+  .auth-card {
+    width: 100%;
+    padding: 32px 24px;
+  }
+
+  .auth-divider {
+    flex-direction: row;
+    padding: 24px 0;
+    gap: 16px;
+    width: 100%;
+  }
+
+  .divider-line {
+    flex: 1;
+    width: auto;
+    height: 1px;
+  }
+
+  .divider-text {
+    flex-shrink: 0;
+  }
+}
+
 .api-error {
   background: #fff5f5;
   color: #e53e3e;

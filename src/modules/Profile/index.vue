@@ -63,4 +63,10 @@ const error = computed(() => getUserEvents.error.value);
   color: #6b7280;
   margin: 4px 0;
 }
+
+@media (max-width: 768px) {
+  .event-card {
+    padding: 12px 16px;
+  }
+}
 </style>

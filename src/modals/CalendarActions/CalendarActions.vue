@@ -456,4 +456,36 @@ const handleRemoveParticipant = async (userId: string) => {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+@media (max-width: 768px) {
+  .modal-content {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    max-width: none;
+    max-height: none;
+    padding: 0;
+  }
+
+  .modal-header {
+    padding: 0 12px;
+  }
+
+  .tab {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  .tab-body {
+    padding: 10px 16px;
+  }
+
+  .close-btn {
+    padding: 4px 12px;
+  }
+
+  .action-btn {
+    width: 100%;
+  }
+}
 </style>
