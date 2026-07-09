@@ -59,7 +59,7 @@ watch(
 );
 
 const parseEventDate = (dateStr: string): Date => {
-  const [day, month, year] = dateStr.split("/").map(Number);
+  const [day = 1, month = 1, year = 2000] = dateStr.split("/").map(Number);
   return new Date(year, month - 1, day);
 };
 
@@ -72,7 +72,7 @@ const createMarkers = (events: Event[] = []) => {
   }
   return Array.from(grouped.entries()).map(([dateStr, dateEvents]) => ({
     date: parseEventDate(dateStr),
-    color: dateEvents[0].color || "#7c3aed",
+    color: dateEvents[0]?.color || "#7c3aed",
     type: "dot" as const,
     tooltip: dateEvents.map((e) => ({
       text: e.name,
@@ -186,7 +186,8 @@ const handleCreateFromDayEvents = () => {
         <CalendarCard
           v-for="cal in calendars.slice(0, 6)"
           :key="cal.id"
-          v-model="calendarDates[cal.id]"
+          :model-value="calendarDates[cal.id] ?? new Date()"
+          @update:model-value="(val: Date) => calendarDates[cal.id] = val"
           :calendar="cal"
           :window-start="windowStart"
           :window-end="windowEnd"

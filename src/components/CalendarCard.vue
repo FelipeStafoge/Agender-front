@@ -32,15 +32,15 @@ watch(date, (val) => {
 });
 
 const listEvents = useGetListEventsByRange(
-  () => props.windowStart,
-  () => props.windowEnd,
-  () => props.calendar.id,
+  computed(() => props.windowStart),
+  computed(() => props.windowEnd),
+  computed(() => props.calendar.id),
 );
 
 const events = computed<Event[]>(() => listEvents.data.value ?? []);
 
 const parseEventDate = (dateStr: string): Date => {
-  const [day, month, year] = dateStr.split("/").map(Number);
+  const [day = 1, month = 1, year = 2000] = dateStr.split("/").map(Number);
   return new Date(year, month - 1, day);
 };
 
@@ -53,7 +53,7 @@ const createMarkers = (evts: Event[] = []) => {
   }
   return Array.from(grouped.entries()).map(([dateStr, dateEvents]) => ({
     date: parseEventDate(dateStr),
-    color: dateEvents[0].color || "#7c3aed",
+    color: dateEvents[0]?.color || "#7c3aed",
     type: "dot" as const,
     tooltip: dateEvents.map((e) => ({
       text: e.name,

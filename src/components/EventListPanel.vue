@@ -24,9 +24,9 @@ const props = withDefaults(
 const activeTab = ref<"24h" | "7d" | "30d">("24h");
 
 const getUserEvents = useGetListEventsByRange(
-  () => props.startDate,
-  () => props.endDate,
-  () => props.calendarId,
+  computed(() => props.startDate),
+  computed(() => props.endDate),
+  computed(() => props.calendarId),
 );
 const getUserCalendars = useGetListCalendars();
 
@@ -56,7 +56,7 @@ const getCalendarInfo = (calendarId: string | null) => {
 };
 
 const parseDate = (dateStr: string): Date => {
-  const [day, month, year] = dateStr.split("/").map(Number);
+  const [day = 1, month = 1, year = 2000] = dateStr.split("/").map(Number);
   return new Date(year, month - 1, day);
 };
 
