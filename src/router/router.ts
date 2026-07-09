@@ -8,7 +8,7 @@ import DefaultVueApp from "@/layouts/DefaultVueApp.vue";
 const routes = [
   {
     path: "/",
-    component: () => DefaultVueApp,
+    component: DefaultVueApp,
     children: [
       {
         path: "",
