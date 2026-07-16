@@ -615,10 +615,6 @@ const navItems = computed(() => [
     padding: 0 16px;
   }
 
-  .hamburger-btn {
-    display: flex;
-  }
-
   .nav-items {
     display: none;
   }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Topbar from "@/components/Topbar/index.vue";
+import BottomNav from "@/components/BottomNav/index.vue";
 </script>
 
 <template>
@@ -11,6 +12,8 @@ import Topbar from "@/components/Topbar/index.vue";
         <router-view />
       </div>
     </main>
+
+    <BottomNav />
   </div>
 </template>
 
@@ -34,6 +37,7 @@ import Topbar from "@/components/Topbar/index.vue";
 @media (max-width: 768px) {
   .content-wrapper {
     padding: 0 16px;
+    padding-bottom: 56px;
   }
 }
 

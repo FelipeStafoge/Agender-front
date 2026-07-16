@@ -9,6 +9,14 @@ const registerMutation = useRegisterRequest();
 const route = useRoute();
 const router = useRouter();
 
+const activeTab = ref<"login" | "register">("login");
+
+const switchTab = (tab: "login" | "register") => {
+  activeTab.value = tab;
+  clearLoginErrors();
+  clearRegisterErrors();
+};
+
 const RegisterinitialForm = {
   name: "",
   email: "",
@@ -207,8 +215,64 @@ const handleLogin = async () => {
 
 <template>
   <div class="auth-page">
-    <div class="auth-container">
-      <div class="auth-card">
+    <div class="auth-modal">
+      <div class="auth-tabs">
+        <button
+          :class="['auth-tab', { active: activeTab === 'login' }]"
+          @click="switchTab('login')"
+        >
+          Entrar
+        </button>
+        <button
+          :class="['auth-tab', { active: activeTab === 'register' }]"
+          @click="switchTab('register')"
+        >
+          Cadastrar
+        </button>
+      </div>
+
+      <div v-if="activeTab === 'login'" class="auth-form">
+        <h2 class="auth-card-title">Entrar</h2>
+        <p class="auth-card-subtitle">Acesse sua conta</p>
+
+        <div v-if="loginApiError" class="api-error">{{ loginApiError }}</div>
+
+        <div class="field-wrap">
+          <label class="field-label">Email</label>
+          <input
+            v-model="Loginform.email"
+            :class="['form-input', { 'form-input--error': loginErrors.email }]"
+            placeholder="seu@email.com"
+            @blur="validateLoginField('email')"
+            @input="loginErrors.email = ''"
+          />
+          <span v-if="loginErrors.email" class="error-text">{{ loginErrors.email }}</span>
+        </div>
+
+        <div class="field-wrap">
+          <label class="field-label">Senha</label>
+          <input
+            v-model="Loginform.password"
+            type="password"
+            :class="['form-input', { 'form-input--error': loginErrors.password }]"
+            placeholder="Sua senha"
+            @blur="validateLoginField('password')"
+            @input="loginErrors.password = ''"
+          />
+          <span v-if="loginErrors.password" class="error-text">{{ loginErrors.password }}</span>
+        </div>
+
+        <button
+          class="btn-primary"
+          :disabled="loginMutation.isPending.value"
+          @click="handleLogin"
+        >
+          <span v-if="loginMutation.isPending.value" class="btn-spinner"></span>
+          {{ loginMutation.isPending.value ? "Entrando..." : "Entrar" }}
+        </button>
+      </div>
+
+      <div v-if="activeTab === 'register'" class="auth-form">
         <h2 class="auth-card-title">Criar conta</h2>
         <p class="auth-card-subtitle">Registre-se para começar a usar</p>
 
@@ -274,52 +338,14 @@ const handleLogin = async () => {
         </button>
       </div>
 
-      <div class="auth-divider">
-        <div class="divider-line"></div>
-        <span class="divider-text">ou</span>
-        <div class="divider-line"></div>
-      </div>
-
-      <div class="auth-card">
-        <h2 class="auth-card-title">Entrar</h2>
-        <p class="auth-card-subtitle">Acesse sua conta</p>
-
-        <div v-if="loginApiError" class="api-error">{{ loginApiError }}</div>
-
-        <div class="field-wrap">
-          <label class="field-label">Email</label>
-          <input
-            v-model="Loginform.email"
-            :class="['form-input', { 'form-input--error': loginErrors.email }]"
-            placeholder="seu@email.com"
-            @blur="validateLoginField('email')"
-            @input="loginErrors.email = ''"
-          />
-          <span v-if="loginErrors.email" class="error-text">{{ loginErrors.email }}</span>
-        </div>
-
-        <div class="field-wrap">
-          <label class="field-label">Senha</label>
-          <input
-            v-model="Loginform.password"
-            type="password"
-            :class="['form-input', { 'form-input--error': loginErrors.password }]"
-            placeholder="Sua senha"
-            @blur="validateLoginField('password')"
-            @input="loginErrors.password = ''"
-          />
-          <span v-if="loginErrors.password" class="error-text">{{ loginErrors.password }}</span>
-        </div>
-
-        <button
-          class="btn-primary"
-          :disabled="loginMutation.isPending.value"
-          @click="handleLogin"
-        >
-          <span v-if="loginMutation.isPending.value" class="btn-spinner"></span>
-          {{ loginMutation.isPending.value ? "Entrando..." : "Entrar" }}
-        </button>
-      </div>
+      <p v-if="activeTab === 'login'" class="auth-switch">
+        Não tem conta?
+        <button class="auth-switch-btn" @click="switchTab('register')">Cadastre-se</button>
+      </p>
+      <p v-if="activeTab === 'register'" class="auth-switch">
+        Já tem conta?
+        <button class="auth-switch-btn" @click="switchTab('login')">Entrar</button>
+      </p>
     </div>
   </div>
 </template>
@@ -330,22 +356,47 @@ const handleLogin = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.20) 0%, rgba(124, 58, 237, 0.06) 100%);
+  background: rgba(0, 0, 0, 0.5);
   padding: 40px 20px;
 }
 
-.auth-container {
-  display: flex;
-  align-items: flex-start;
-  gap: 48px;
-}
-
-.auth-card {
+.auth-modal {
   background: #fff;
   border-radius: 12px;
-  padding: 40px 36px;
-  width: 380px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.auth-tabs {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 14px 0;
+  font-size: 15px;
+  font-weight: 500;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.auth-tab:hover {
+  color: #374151;
+}
+
+.auth-tab.active {
+  color: #7c3aed;
+  border-bottom-color: #7c3aed;
+}
+
+.auth-form {
+  padding: 32px 32px 24px;
 }
 
 .auth-card-title {
@@ -361,61 +412,44 @@ const handleLogin = async () => {
   margin-bottom: 28px;
 }
 
-.auth-divider {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  padding-top: 40px;
-}
-
-.divider-line {
-  width: 1px;
-  height: 80px;
-  background: #d1d5db;
-}
-
-.divider-text {
+.auth-switch {
+  text-align: center;
   font-size: 13px;
-  color: #9ca3af;
+  color: #6b7280;
+  padding: 0 32px 24px;
+  margin: 0;
+}
+
+.auth-switch-btn {
+  color: #7c3aed;
   font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0;
+}
+
+.auth-switch-btn:hover {
+  color: #6d28d9;
 }
 
 @media (max-width: 768px) {
   .auth-page {
     padding: 24px 16px;
-    align-items: flex-start;
-    padding-top: 40px;
   }
 
-  .auth-container {
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
+  .auth-modal {
     width: 100%;
     max-width: 400px;
   }
 
-  .auth-card {
-    width: 100%;
-    padding: 32px 24px;
+  .auth-form {
+    padding: 24px 24px 20px;
   }
 
-  .auth-divider {
-    flex-direction: row;
-    padding: 24px 0;
-    gap: 16px;
-    width: 100%;
-  }
-
-  .divider-line {
-    flex: 1;
-    width: auto;
-    height: 1px;
-  }
-
-  .divider-text {
-    flex-shrink: 0;
+  .auth-switch {
+    padding: 0 24px 20px;
   }
 }
 
