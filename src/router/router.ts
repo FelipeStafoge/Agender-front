@@ -23,7 +23,10 @@ const routes = [
       {
         path: "profile",
         component: Profile,
-        meta: { requiresAuth: true },
+        meta: {
+          requiresAuth: true,
+          localOnly: true,
+        },
       },
     ],
   },
@@ -44,6 +47,10 @@ router.beforeEach((to) => {
 
   if (!userAuthenticated) {
     // refaz chamada pra puxar infos do usuario
+  }
+
+  if (to.meta.localOnly && !import.meta.env.DEV) {
+    return "/";
   }
 
   if (to.meta.requiresAuth && !token) {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import EventListPanel from "@/components/EventListPanel.vue";
+import SectionHeader from "@/components/SectionHeader.vue";
 import { useAuth } from "@/utils/Authentication/auth";
 import { formatDate } from "@/utils/formatDate";
 import type { Event } from "@/types/api";
@@ -48,6 +49,12 @@ const thirtyDaysLater = computed(() => {
       />
     </div>
 
+    <SectionHeader
+      class="all-events-header"
+      title="Todos os eventos"
+      subtitle="Visualize todos os eventos dos seus calendários em um único lugar e acompanhe sua agenda de forma simples."
+    />
+
     <EventListPanel
       :start-date="today"
       :end-date="thirtyDaysLater"
@@ -67,6 +74,11 @@ const thirtyDaysLater = computed(() => {
   height: 100%;
 }
 
+.all-events-header {
+  width: 1000px;
+  margin-top: 16px;
+}
+
 .top-row {
   display: flex;
   gap: 10px;
@@ -79,6 +91,11 @@ const thirtyDaysLater = computed(() => {
     gap: 16px;
     height: auto;
     min-height: 100%;
+  }
+
+  .all-events-header {
+    width: 100%;
+    padding: 0 16px;
   }
 
   .top-row {
