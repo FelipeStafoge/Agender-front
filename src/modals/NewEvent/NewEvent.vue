@@ -46,7 +46,7 @@ const newEventInitialForm = {
   date: "",
   description: "",
   color: "#7c3aed",
-  users_ids: [] as string[],
+  users: [{ name: "", id: "" }],
 };
 const selectedCalendarId = ref<string | number | null>(null);
 const userInput = ref("");
@@ -141,7 +141,7 @@ const addUser = async () => {
   try {
     const validateUser = await getUserInfo({ NameWithCode: userInput.value });
 
-    newEventForm.users_ids.push(validateUser.id);
+    newEventForm.users.push({ name: validateUser.name, id: validateUser.id });
     userInput.value = "";
   } catch {
     userSearchError.value = "Usuário não encontrado";
@@ -158,7 +158,7 @@ const handleCreateEvent = async () => {
         date: newEventForm.date,
         description: newEventForm.description || null,
         color: newEventForm.color,
-        users_ids: newEventForm.users_ids,
+        users_ids: newEventForm.users.filter((u) => u.id).map((u) => u.id),
         calendar_id: selectedCalendarId.value,
       },
     });
@@ -276,8 +276,9 @@ const handleCreateEvent = async () => {
         }}</span>
       </div>
 
-      <div v-for="user in newEventForm.users_ids" :key="user">
-        <p>{{ user }}</p>
+      <div v-for="user in newEventForm.users.filter(u => u.id)" :key="user.id" class="user-item">
+        <p>{{ user.name }}</p>
+        <button class="remove-user-btn" @click="newEventForm.users = newEventForm.users.filter(u => u.id !== user.id)" type="button">&times;</button>
       </div>
 
       <button
@@ -414,6 +415,29 @@ const handleCreateEvent = async () => {
   width: 100%;
 }
 
+.user-item {
+  width: 70%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #374151;
+}
+
+.remove-user-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.remove-user-btn:hover {
+  color: #e53e3e;
+}
+
 .form-input--error {
   border: 1px solid #e53e3e;
 }
@@ -454,6 +478,7 @@ const handleCreateEvent = async () => {
   .form-select,
   .form-textarea,
   .color-picker-wrap,
+  .user-item,
   .general-error {
     width: 100%;
   }

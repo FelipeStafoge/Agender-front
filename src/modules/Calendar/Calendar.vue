@@ -303,7 +303,7 @@ const handleCreateFromDayEvents = () => {
 .calendars-header {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
