@@ -7,6 +7,7 @@ import NewCalendarModal from "@/modals/NewCalendar/NewCalendar.vue";
 import CalendarActionsModal from "@/modals/CalendarActions/CalendarActions.vue";
 import DayEventsModal from "@/modals/DayEvents/DayEvents.vue";
 import CalendarCard from "@/components/CalendarCard.vue";
+import SectionHeader from "@/components/SectionHeader.vue";
 import { useGetListEventsByRange } from "@/requests/Events/ListEventsByRange/listEventsByRange";
 import { useGetListCalendars } from "@/requests/Calendar/getListCalendar";
 import { formatDate } from "@/utils/formatDate";
@@ -34,11 +35,7 @@ const windowStart = computed(() => {
 });
 
 const windowEnd = computed(() => {
-  const d = new Date(
-    date.value.getFullYear(),
-    date.value.getMonth() + 2,
-    0,
-  );
+  const d = new Date(date.value.getFullYear(), date.value.getMonth() + 2, 0);
   return formatDate(d);
 });
 
@@ -81,9 +78,7 @@ const createMarkers = (events: Event[] = []) => {
   }));
 };
 
-const markers = computed(() =>
-  createMarkers(listEvents.data.value),
-);
+const markers = computed(() => createMarkers(listEvents.data.value));
 
 const openGroupEventModal = (calendar: Calendar, selectedDate: Date) => {
   selectedCalendarId.value = calendar.id;
@@ -157,43 +152,62 @@ const handleCreateFromDayEvents = () => {
 </script>
 
 <template>
-  <div class="container">
-    <div class="left-panel">
-      <div class="left-content">
-        <VueDatePicker
-          class="calendar-custom"
-          v-model="date"
-          inline
-          auto-apply
-          :enable-time-picker="false"
-          no-today
-          :markers="markers"
-          @date-click="onMainDayClick"
-        />
-        <button class="open-modal-btn novo-evento-btn" @click="openPersonalEventModal">
-          Novo Evento
-        </button>
+  <div class="page-wrapper">
+    <div class="container">
+      <div class="left-panel">
+        <div class="left-content">
+          <SectionHeader
+            class="events-header"
+            title="Seus eventos"
+            subtitle="Aqui você encontra todos os seus eventos, tanto os eventos individuais quanto os eventos pertencentes aos calendários dos quais você participa."
+          />
+          <VueDatePicker
+            class="calendar-custom"
+            v-model="date"
+            inline
+            auto-apply
+            :enable-time-picker="false"
+            no-today
+            :markers="markers"
+            @date-click="onMainDayClick"
+          />
+          <button
+            class="open-modal-btn novo-evento-btn"
+            @click="openPersonalEventModal"
+          >
+            Novo Evento
+          </button>
+        </div>
       </div>
-    </div>
 
-    <div class="center-divider-line"></div>
+      <div class="center-divider-line"></div>
 
-    <div class="right-panel">
-      <button class="open-modal-btn create-calendar-btn" @click="showCreateAgenderModal = true">
-        Novo Calendário
-      </button>
-      <div class="calendar-grid">
-        <CalendarCard
-          v-for="cal in calendars.slice(0, 6)"
-          :key="cal.id"
-          :model-value="calendarDates[cal.id] ?? new Date()"
-          @update:model-value="(val: Date) => calendarDates[cal.id] = val"
-          :calendar="cal"
-          :window-start="windowStart"
-          :window-end="windowEnd"
-          @day-click="onCalendarDayClick"
-          @open-actions="onOpenCalendarActions"
-        />
+      <div class="right-panel">
+        <div class="calendars-header">
+          <button
+            class="open-modal-btn create-calendar-btn"
+            @click="showCreateAgenderModal = true"
+          >
+            Novo Calendário
+          </button>
+          <SectionHeader
+            title="Calendários"
+            subtitle="Crie calendários separados para organizar melhor seus eventos e compartilhá-los com outros participantes."
+          />
+        </div>
+        <div class="calendar-grid">
+          <CalendarCard
+            v-for="cal in calendars.slice(0, 6)"
+            :key="cal.id"
+            :model-value="calendarDates[cal.id] ?? new Date()"
+            @update:model-value="(val: Date) => (calendarDates[cal.id] = val)"
+            :calendar="cal"
+            :window-start="windowStart"
+            :window-end="windowEnd"
+            @day-click="onCalendarDayClick"
+            @open-actions="onOpenCalendarActions"
+          />
+        </div>
       </div>
     </div>
 
@@ -222,9 +236,27 @@ const handleCreateFromDayEvents = () => {
 </template>
 
 <style scoped>
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 64px);
+}
+
 .container {
   display: flex;
-  height: calc(100vh - 64px);
+  flex: 1;
+  min-height: 0;
+}
+
+.events-header {
+  text-align: center;
+  padding-top: 24px;
+}
+
+.events-header :deep(.section-subtitle) {
+  max-width: 480px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .calendar-custom :deep(.dp--outer-menu-wrap) {
@@ -256,12 +288,23 @@ const handleCreateFromDayEvents = () => {
   white-space: nowrap;
 }
 
+.open-modal-btn:hover {
+  background: #6d28d9;
+}
+
 .right-panel {
   flex: 1;
   padding: 16px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+}
+
+.calendars-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
 }
 
 .center-divider-line {
@@ -271,9 +314,10 @@ const handleCreateFromDayEvents = () => {
 }
 
 .create-calendar-btn {
-  margin-bottom: 16px;
   display: block;
   width: fit-content;
+  flex-shrink: 0;
+  margin-left: 16px;
 }
 
 .novo-evento-btn {
@@ -308,10 +352,27 @@ const handleCreateFromDayEvents = () => {
 }
 
 @media (max-width: 768px) {
-  .container {
-    flex-direction: column;
+  .page-wrapper {
     height: auto;
     min-height: 100%;
+  }
+
+  .container {
+    flex-direction: column;
+    flex: none;
+  }
+
+  .events-header {
+    text-align: left;
+    padding: 16px 16px 0;
+  }
+
+  .events-header :deep(.section-subtitle) {
+    max-width: none;
+  }
+
+  .events-header :deep(.title-row) {
+    justify-content: center;
   }
 
   .calendar-custom :deep(.dp--outer-menu-wrap) {
@@ -342,9 +403,15 @@ const handleCreateFromDayEvents = () => {
     overflow-y: visible;
   }
 
+  .calendars-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+
   .create-calendar-btn {
     width: 100%;
-    margin-bottom: 16px;
+    margin-left: 0;
   }
 
   .calendar-grid {
