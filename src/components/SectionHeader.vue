@@ -61,23 +61,44 @@ onUnmounted(() => {
     <div class="title-row">
       <h2 class="section-title">{{ props.title }}</h2>
       <span class="help-icon-wrapper" ref="iconRef">
-        <button class="help-icon-btn" @click.stop="togglePopover" type="button" aria-label="Ajuda">
+        <button
+          class="help-icon-btn"
+          @click.stop="togglePopover"
+          type="button"
+          aria-label="Ajuda"
+        >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="#9ca3af" stroke-width="1.5" />
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="#9ca3af"
+              stroke-width="1.5"
+            />
             <path
               d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"
               stroke="#9ca3af"
               stroke-width="1.5"
               stroke-linecap="round"
             />
-            <circle cx="12" cy="17" r="0.5" fill="#9ca3af" stroke="#9ca3af" stroke-width="0.5" />
+            <circle
+              cx="12"
+              cy="17"
+              r="0.5"
+              fill="#9ca3af"
+              stroke="#9ca3af"
+              stroke-width="0.5"
+            />
           </svg>
         </button>
         <div
           v-if="showPopover"
           class="help-popover"
           :class="`help-popover--${popoverAlign}`"
-          :style="{ transform: `translateX(${popoverOffset}px)`, '--arrow-offset': `${popoverOffset}px` }"
+          :style="{
+            transform: `translateX(${popoverOffset}px)`,
+            '--arrow-offset': `${popoverOffset}px`,
+          }"
         >
           {{ props.subtitle }}
         </div>
@@ -100,13 +121,13 @@ onUnmounted(() => {
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
   color: #1f2937;
 }
 
 .section-subtitle {
-  font-size: 13px;
+  font-size: 18px;
   color: #6b7280;
   margin-top: 4px;
 }

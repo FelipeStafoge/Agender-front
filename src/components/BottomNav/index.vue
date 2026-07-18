@@ -44,6 +44,7 @@ const navItems = computed(() => [
     icon: "home",
     active: isActive("/"),
     action: () => router.push("/"),
+    enabled: true,
   },
   {
     path: "/calendar",
@@ -51,6 +52,7 @@ const navItems = computed(() => [
     icon: "calendar",
     active: isActive("/calendar"),
     action: () => router.push("/calendar"),
+    enabled: true,
   },
   {
     path: "/profile",
@@ -58,6 +60,7 @@ const navItems = computed(() => [
     icon: "profile",
     active: isActive("/profile"),
     action: () => router.push("/profile"),
+    enabled: window.location.hostname === "localhost",
   },
 ]);
 </script>
@@ -65,7 +68,7 @@ const navItems = computed(() => [
 <template>
   <nav class="bottom-nav">
     <button
-      v-for="item in navItems"
+      v-for="item in navItems.filter((item) => item.enabled)"
       :key="item.path"
       :class="['bottom-nav-item', { active: item.active }]"
       @click="item.action"
@@ -150,7 +153,9 @@ const navItems = computed(() => [
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          <span class="drawer-user-code">{{ getUser?.userName }}#{{ getUser?.userCode }}</span>
+          <span class="drawer-user-code"
+            >{{ getUser?.userName }}#{{ getUser?.userCode }}</span
+          >
           <button class="drawer-copy-btn" @click="copyUserCode">
             <svg
               class="icon"
@@ -162,7 +167,9 @@ const navItems = computed(() => [
               stroke-linejoin="round"
             >
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              <path
+                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"
+              />
             </svg>
             <span v-if="copied" class="copied-tooltip">Copiado!</span>
           </button>
@@ -218,7 +225,9 @@ const navItems = computed(() => [
   background: transparent;
   color: #6b7280;
   cursor: pointer;
-  transition: color 0.2s, background-color 0.2s;
+  transition:
+    color 0.2s,
+    background-color 0.2s;
   min-width: 64px;
 }
 
