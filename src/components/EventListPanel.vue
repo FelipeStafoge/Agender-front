@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { useGetListEventsByRange } from "@/requests/Events/ListEventsByRange/listEventsByRange";
 import { useGetListCalendars } from "@/requests/Calendar/getListCalendar";
+import EventDetailModal from "@/modals/EventDetail/EventDetail.vue";
 import type { Event, Calendar } from "@/types/api";
 
 const props = withDefaults(
@@ -22,6 +23,13 @@ const props = withDefaults(
 );
 
 const activeTab = ref<"24h" | "7d" | "30d">("24h");
+const showEventDetailModal = ref(false);
+const selectedEvent = ref<Event | null>(null);
+
+const openEventDetailModal = (event: Event) => {
+  selectedEvent.value = event;
+  showEventDetailModal.value = true;
+};
 
 const getUserEvents = useGetListEventsByRange(
   computed(() => props.startDate),
@@ -136,6 +144,7 @@ const emptyMessage = computed(() => {
         v-for="event in filteredEvents"
         :key="event.id"
         class="event-card"
+        v-on:click="openEventDetailModal(event)"
       >
         <div class="event-header">
           <span class="event-name">{{ event.name }}</span>
@@ -161,6 +170,10 @@ const emptyMessage = computed(() => {
         </p>
       </div>
     </div>
+    <EventDetailModal
+      v-model:visible="showEventDetailModal"
+      :event="selectedEvent"
+    />
   </div>
 </template>
 
@@ -190,7 +203,9 @@ const emptyMessage = computed(() => {
   color: #6b7280;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
-  transition: color 0.2s, border-color 0.2s;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
 }
 
 .tab:hover {
@@ -279,6 +294,11 @@ const emptyMessage = computed(() => {
   .events-panel {
     width: 100% !important;
     max-height: none !important;
+    border-top: 1px solid #6bacea;
+    border-bottom: 1px solid #6bacea;
+    border-left: none;
+    border-right: none;
+    border-radius: 0%;
   }
 
   .tab {
