@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Event, Calendar } from "@/types/api";
-import { computed } from "vue";
+import { computed, ref } from "vue";
+import EventDetailModal from "@/modals/EventDetail/EventDetail.vue";
 
 const props = defineProps<{
   visible: boolean;
@@ -37,6 +38,13 @@ const getCalendarInfo = (calendarId: string | null) => {
     ? { name: cal.name, color: cal.color || "#7c3aed" }
     : { name: "Desconhecido", color: "#7c3aed" };
 };
+const showEventDetailModal = ref(false);
+const selectedEvent = ref<Event | null>(null);
+
+const openEventDetailModal = (event: Event) => {
+  selectedEvent.value = event;
+  showEventDetailModal.value = true;
+};
 </script>
 
 <template>
@@ -50,7 +58,12 @@ const getCalendarInfo = (calendarId: string | null) => {
         <button class="close-btn" @click="close">&times;</button>
       </div>
       <div class="tab-body">
-        <div v-for="event in events" :key="event.id" class="event-card">
+        <div
+          v-for="event in events"
+          :key="event.id"
+          class="event-card"
+          v-on:click="openEventDetailModal(event)"
+        >
           <div class="event-header">
             <span class="event-name">{{ event.name }}</span>
             <span
@@ -75,6 +88,10 @@ const getCalendarInfo = (calendarId: string | null) => {
         </div>
       </div>
     </div>
+    <EventDetailModal
+      v-model:visible="showEventDetailModal"
+      :event="selectedEvent"
+    />
   </div>
 </template>
 
