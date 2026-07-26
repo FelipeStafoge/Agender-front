@@ -13,7 +13,11 @@ type CreateEventParams = {
 };
 
 const createEventRequest = async ({ form }: CreateEventParams) => {
-  const { data } = await http.post("/auth/createEvent", form);
+  const payload = {
+    ...form,
+    dates: form.dates.map((d) => new Date(d).toISOString()),
+  };
+  const { data } = await http.post("/auth/createEvent", payload);
 
   return data;
 };
