@@ -39,7 +39,7 @@ const calendarOptions = computed(() => [
 ]);
 
 const dates = ref<string[]>([]);
-const datesSelected = ref([""]);
+const datesSelected = ref([] as string[]);
 const createEvent = useCreateEventRequest();
 const queryClient = useQueryClient();
 const newEventInitialForm = () => ({
@@ -143,12 +143,13 @@ const addUser = async () => {
   if (!userInput.value) return;
 
   userSearchError.value = "";
+  const userToSearch = userInput.value;
+  userInput.value = "";
 
   try {
-    const validateUser = await getUserInfo({ NameWithCode: userInput.value });
+    const validateUser = await getUserInfo({ NameWithCode: userToSearch });
 
     newEventForm.users.push({ name: validateUser.name, id: validateUser.id });
-    userInput.value = "";
   } catch {
     userSearchError.value = "Usuário não encontrado";
   }
@@ -213,6 +214,7 @@ const closeDateSelector = () => {
           :disabled="isCalendarLocked"
           class="form-select"
           @change="onCalendarChange"
+          style="margin-top: 5px"
         >
           <option value="">Meus Eventos</option>
           <option v-for="cal in calendars" :key="cal.id" :value="cal.id">
@@ -222,6 +224,7 @@ const closeDateSelector = () => {
       </div>
 
       <div class="field-wrap">
+        <label class="color-label">Nome</label>
         <input
           v-model="newEventForm.name"
           placeholder="Nome do evento"
@@ -233,6 +236,7 @@ const closeDateSelector = () => {
       </div>
 
       <div class="field-wrap">
+        <label class="color-label">Descrição</label>
         <textarea
           v-model="newEventForm.description"
           placeholder="Adicionar descrição..."
@@ -242,12 +246,20 @@ const closeDateSelector = () => {
       </div>
 
       <div class="field-wrap">
+        <label class="color-label">Datas:</label>
         <VueDatePicker
           v-model="newEventForm.dates"
           ref="datepicker"
           :class="['form-input', { 'form-input--error': formErrors.date }]"
           :enable-time-picker="false"
           :multi-dates="{ dragSelect: false }"
+          placeholder="Selecione as datas aqui"
+          @cleared="
+            () => {
+              datesSelected = [];
+              dates = [];
+            }
+          "
           v-on:closed="closeDateSelector"
           @internal-model-change="handleDateChange"
           @update:model-value="handleDateUpdate"
@@ -255,9 +267,29 @@ const closeDateSelector = () => {
         <span v-if="formErrors.date" class="error-text">{{
           formErrors.date
         }}</span>
-        <p v-for="date in datesSelected" :key="date" v-if="!!datesSelected">
-          {{ formatDate(date) }}
-        </p>
+        <div style="display: flex; width: 100%; flex-wrap: wrap">
+          <template v-for="(date, index) in datesSelected" :key="date">
+            <div
+              v-if="index < 17"
+              style="
+                border: 2px solid rgba(124, 58, 237, 0.2);
+                padding: 2px;
+                border-radius: 5%;
+                margin-right: 5px;
+                margin-bottom: 5px;
+              "
+            >
+              {{ formatDate(date)[0]?.slice(0, 5) }}
+            </div>
+
+            <div
+              v-else-if="index === 17"
+              style="padding: 2px; margin-right: 5px; margin-bottom: 5px"
+            >
+              ...
+            </div>
+          </template>
+        </div>
       </div>
 
       <div
@@ -292,12 +324,38 @@ const closeDateSelector = () => {
       </div>
 
       <div class="field-wrap">
-        <input
-          v-model="userInput"
-          placeholder="Nome#ID"
-          class="form-input"
-          @keydown.enter.prevent="addUser"
-        />
+        <label class="color-label">Adicione pessoas no evento</label>
+        <div
+          style="display: flex; flex-direction: row; gap: 5px; cursor: pointer"
+        >
+          <input
+            v-model="userInput"
+            placeholder="Nome#ID"
+            class="form-input"
+            @keydown.enter.prevent="addUser"
+          />
+          <svg
+            @click="addUser"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            style="
+              flex-shrink: 0;
+              cursor: pointer;
+              border: 2px solid rgba(124, 58, 237, 0.5);
+              border-radius: 3px;
+            "
+            fill="none"
+            stroke="#7c3aed"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+        </div>
+
         <span v-if="userSearchError" class="error-text">{{
           userSearchError
         }}</span>
@@ -324,7 +382,12 @@ const closeDateSelector = () => {
 
       <button
         class="confirm-btn"
-        :disabled="createEvent.isPending.value"
+        :disabled="
+          createEvent.isPending.value ||
+          !newEventForm.name ||
+          !newEventForm.dates.length ||
+          !newEventForm.color
+        "
         @click="handleCreateEvent"
       >
         {{ createEvent.isPending.value ? "Criando..." : "Confirmar Evento" }}
