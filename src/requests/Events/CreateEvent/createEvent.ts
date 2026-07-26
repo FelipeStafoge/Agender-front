@@ -4,7 +4,7 @@ import http from "@/services/http";
 type CreateEventParams = {
   form: {
     name: string;
-    date: string;
+    dates: string[];
     description?: string | null;
     color: string;
     users_ids: string[];

@@ -38,22 +38,24 @@ const calendarOptions = computed(() => [
   })),
 ]);
 
-const date = ref<Date | null>(null);
+const dates = ref<string[]>([]);
+const datesSelected = ref([""]);
 const createEvent = useCreateEventRequest();
 const queryClient = useQueryClient();
-const newEventInitialForm = {
+const newEventInitialForm = () => ({
   name: "",
-  date: "",
+  dates: [] as string[],
   description: "",
   color: "#7c3aed",
   users: [{ name: "", id: "" }],
-};
+});
+
 const selectedCalendarId = ref<string | number | null>(null);
 const userInput = ref("");
 const submitError = ref("");
 const userSearchError = ref("");
 
-const newEventForm = reactive({ ...newEventInitialForm });
+const newEventForm = reactive(newEventInitialForm());
 
 const formErrors = reactive({
   name: "",
@@ -61,7 +63,10 @@ const formErrors = reactive({
   color: "",
 });
 
-const close = () => emit("update:visible", false);
+const close = () => {
+  emit("update:visible", false);
+  resetForm();
+};
 
 const onOverlayClick = (e: MouseEvent) => {
   if (e.target === e.currentTarget) close();
@@ -72,8 +77,8 @@ watch(
   (isVisible) => {
     if (isVisible) {
       if (props.initialDate) {
-        date.value = props.initialDate;
-        newEventForm.date = formatDate(props.initialDate);
+        dates.value = props.initialDate.toString().split(",");
+        newEventForm.dates = props.initialDate.toString().split(",");
       }
       if (props.calendarId) {
         selectedCalendarId.value = props.calendarId;
@@ -108,7 +113,7 @@ const validateForm = () => {
     valid = false;
   }
 
-  if (!newEventForm.date) {
+  if (!newEventForm.dates.filter(Boolean).length) {
     formErrors.date = "Data do evento é obrigatória";
     valid = false;
   }
@@ -122,9 +127,10 @@ const validateForm = () => {
 };
 
 const resetForm = () => {
-  Object.assign(newEventForm, { ...newEventInitialForm });
-  date.value = null;
+  Object.assign(newEventForm, newEventInitialForm());
+  dates.value = [];
   userInput.value = "";
+  datesSelected.value = [];
   selectedCalendarId.value = null;
   formErrors.name = "";
   formErrors.date = "";
@@ -155,7 +161,7 @@ const handleCreateEvent = async () => {
     await createEvent.mutateAsync({
       form: {
         name: newEventForm.name,
-        date: newEventForm.date,
+        dates: newEventForm.dates,
         description: newEventForm.description || null,
         color: newEventForm.color,
         users_ids: newEventForm.users.filter((u) => u.id).map((u) => u.id),
@@ -168,6 +174,25 @@ const handleCreateEvent = async () => {
   } catch (error) {
     submitError.value = "Erro ao criar evento. Tente novamente.";
   }
+};
+
+const handleDateUpdate = (value: Date[] | Date | null) => {
+  if (!value) return;
+
+  const values = Array.isArray(value) ? value : [value];
+  dates.value = values.toString().split(",");
+};
+
+const handleDateChange = (value: Date[] | Date | null) => {
+  if (!value) return;
+
+  const allValues = value.toString().split(",");
+  datesSelected.value = allValues;
+};
+
+const closeDateSelector = () => {
+  dates.value = datesSelected.value;
+  newEventForm.dates = dates.value;
 };
 </script>
 
@@ -218,19 +243,21 @@ const handleCreateEvent = async () => {
 
       <div class="field-wrap">
         <VueDatePicker
-          v-model="date"
+          v-model="newEventForm.dates"
+          ref="datepicker"
           :class="['form-input', { 'form-input--error': formErrors.date }]"
           :enable-time-picker="false"
-          @update:model-value="
-            (value) => {
-              newEventForm.date = formatDate(value);
-              if (value) formErrors.date = '';
-            }
-          "
+          :multi-dates="{ dragSelect: false }"
+          v-on:closed="closeDateSelector"
+          @internal-model-change="handleDateChange"
+          @update:model-value="handleDateUpdate"
         />
         <span v-if="formErrors.date" class="error-text">{{
           formErrors.date
         }}</span>
+        <p v-for="date in datesSelected" :key="date" v-if="!!datesSelected">
+          {{ formatDate(date) }}
+        </p>
       </div>
 
       <div
@@ -276,9 +303,23 @@ const handleCreateEvent = async () => {
         }}</span>
       </div>
 
-      <div v-for="user in newEventForm.users.filter(u => u.id)" :key="user.id" class="user-item">
+      <div
+        v-for="user in newEventForm.users.filter((u) => u.id)"
+        :key="user.id"
+        class="user-item"
+      >
         <p>{{ user.name }}</p>
-        <button class="remove-user-btn" @click="newEventForm.users = newEventForm.users.filter(u => u.id !== user.id)" type="button">&times;</button>
+        <button
+          class="remove-user-btn"
+          @click="
+            newEventForm.users = newEventForm.users.filter(
+              (u) => u.id !== user.id,
+            )
+          "
+          type="button"
+        >
+          &times;
+        </button>
       </div>
 
       <button
