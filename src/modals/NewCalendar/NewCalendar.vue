@@ -14,7 +14,7 @@ const emit = defineEmits<{ (e: "update:visible", value: boolean): void }>();
 
 const createCalendar = useCreateCalendarRequest();
 const queryClient = useQueryClient();
-const newEventInitialForm = {
+const newCalendarInitialForm = {
   name: "",
   DefaultColor: "#7c3aed",
   users: [{ name: "", id: "" }],
@@ -23,7 +23,7 @@ const userInput = ref("");
 const submitError = ref("");
 const userSearchError = ref("");
 
-const newEventForm = reactive({ ...newEventInitialForm });
+const newCalendarForm = reactive({ ...newCalendarInitialForm });
 
 const formErrors = reactive({
   name: "",
@@ -42,12 +42,12 @@ const validateForm = () => {
   formErrors.DefaultColor = "";
   submitError.value = "";
 
-  if (!newEventForm.name.trim()) {
+  if (!newCalendarForm.name.trim()) {
     formErrors.name = "Nome do calendário é obrigatório";
     valid = false;
   }
 
-  if (!newEventForm.DefaultColor) {
+  if (!newCalendarForm.DefaultColor) {
     formErrors.DefaultColor = "Cor do calendário é obrigatória";
     valid = false;
   }
@@ -56,7 +56,7 @@ const validateForm = () => {
 };
 
 const resetForm = () => {
-  Object.assign(newEventForm, { ...newEventInitialForm });
+  Object.assign(newCalendarForm, { ...newCalendarInitialForm });
 
   userInput.value = "";
   formErrors.name = "";
@@ -69,12 +69,16 @@ const addUser = async () => {
   if (!userInput.value) return;
 
   userSearchError.value = "";
+  const userToSearch = userInput.value;
+  userInput.value = "";
 
   try {
-    const validateUser = await getUserInfo({ NameWithCode: userInput.value });
+    const validateUser = await getUserInfo({ NameWithCode: userToSearch });
 
-    newEventForm.users.push({ name: validateUser.name, id: validateUser.id });
-    userInput.value = "";
+    newCalendarForm.users.push({
+      name: validateUser.name,
+      id: validateUser.id,
+    });
   } catch {
     userSearchError.value = "Usuário não encontrado";
   }
@@ -115,8 +119,9 @@ const handleCreateCalendar = async ({
       </p>
 
       <div class="field-wrap">
+        <label class="color-label">Nome</label>
         <input
-          v-model="newEventForm.name"
+          v-model="newCalendarForm.name"
           placeholder="Nome do calendario"
           :class="['form-input', { 'form-input--error': formErrors.name }]"
         />
@@ -133,10 +138,10 @@ const handleCreateCalendar = async ({
       >
         <label class="color-label">Cor do calendário</label>
         <Compact
-          :model-value="newEventForm.DefaultColor"
+          :model-value="newCalendarForm.DefaultColor"
           @update:model-value="
             (payload: any) => {
-              newEventForm.DefaultColor = payload.hex;
+              newCalendarForm.DefaultColor = payload.hex;
               formErrors.DefaultColor = '';
             }
           "
@@ -147,32 +152,72 @@ const handleCreateCalendar = async ({
       </div>
 
       <div class="field-wrap">
-        <input
-          v-model="userInput"
-          placeholder="Nome#ID"
-          class="form-input"
-          @keydown.enter.prevent="addUser"
-        />
+        <label class="color-label">Adicione pessoas no evento</label>
+        <div
+          style="display: flex; flex-direction: row; gap: 5px; cursor: pointer"
+        >
+          <input
+            v-model="userInput"
+            placeholder="Nome#ID"
+            class="form-input"
+            @keydown.enter.prevent="addUser"
+          />
+          <svg
+            @click="addUser"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            style="flex-shrink: 0; cursor: pointer;"
+            fill="none"
+            stroke="#7c3aed"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+        </div>
         <span v-if="userSearchError" class="error-text">{{
           userSearchError
         }}</span>
       </div>
 
-      <div v-for="user in newEventForm.users.filter(u => u.id)" :key="user.id" class="user-item">
+      <div
+        v-for="user in newCalendarForm.users.filter((u) => u.id)"
+        :key="user.id"
+        class="user-item"
+      >
         <p>{{ user.name }}</p>
-        <button class="remove-user-btn" @click="newEventForm.users = newEventForm.users.filter(u => u.id !== user.id)" type="button">&times;</button>
+        <button
+          class="remove-user-btn"
+          @click="
+            newCalendarForm.users = newCalendarForm.users.filter(
+              (u) => u.id !== user.id,
+            )
+          "
+          type="button"
+        >
+          &times;
+        </button>
       </div>
 
       <button
         class="confirm-btn"
-        :disabled="createCalendar.isPending.value"
+        :disabled="
+          createCalendar.isPending.value ||
+          !newCalendarForm.name ||
+          !newCalendarForm.DefaultColor
+        "
         @click="
           () =>
             handleCreateCalendar({
               form: {
-                name: newEventForm.name,
-                DefaultColor: newEventForm.DefaultColor,
-                users_ids: newEventForm.users.filter((u) => u.id).map((u) => u.id),
+                name: newCalendarForm.name,
+                DefaultColor: newCalendarForm.DefaultColor,
+                users_ids: newCalendarForm.users
+                  .filter((u) => u.id)
+                  .map((u) => u.id),
               },
             })
         "
