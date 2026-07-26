@@ -31,12 +31,12 @@ const selectedDayEventsContextCalendarId = ref<string | null>(null);
 const windowStart = computed(() => {
   const d = new Date(date.value);
   d.setDate(1);
-  return formatDate(d);
+  return formatDate(d).toString();
 });
 
 const windowEnd = computed(() => {
   const d = new Date(date.value.getFullYear(), date.value.getMonth() + 2, 0);
-  return formatDate(d);
+  return formatDate(d).toString();
 });
 
 const listEvents = useGetListEventsByRange(windowStart, windowEnd);

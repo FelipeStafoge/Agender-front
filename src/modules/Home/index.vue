@@ -20,13 +20,13 @@ const isCalendarEventFilter = (event: Event): boolean =>
 const today = computed(() => {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
-  return formatDate(d);
+  return formatDate(d).toString();
 });
 
 const thirtyDaysLater = computed(() => {
   const d = new Date();
   d.setDate(d.getDate() + 30);
-  return formatDate(d);
+  return formatDate(d).toString();
 });
 </script>
 
